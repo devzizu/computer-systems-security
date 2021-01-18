@@ -1,0 +1,3 @@
+libfuse libs (github)       : http://libfuse.github.io/doxygen/index.html
+passwd struct (/etc/passwd) : https://www.mkssoftware.com/docs/man5/struct_passwd.5.asp
+group struct (/etc/group)   : https://www.mkssoftware.com/docs/man5/struct_group.5.asp
