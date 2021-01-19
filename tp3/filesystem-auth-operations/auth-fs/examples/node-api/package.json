@@ -1,0 +1,11 @@
+{
+    "name": "auth-api",
+    "version": "1.0.0",
+    "description": "Filesystem with encorporated authentication method.",
+    "main": "app.js",
+    "scripts": {},
+    "author": "tp3-ssi-grupo9",
+    "dependencies": {
+        "express": "^4.17.1"
+    }
+}
