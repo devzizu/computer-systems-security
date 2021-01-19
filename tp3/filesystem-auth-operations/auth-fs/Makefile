@@ -4,21 +4,22 @@ MOUNT_PLACE=/tmp/$(FS)
 FLAGS=-Wall -Wextra -g
 
 INC_GLIB=`pkg-config --cflags --libs glib-2.0`
-INC_FUSE=`pkg-config fuse3 --cflags --libs`
+INC_CFL=`pkg-config --cflags fuse3 glib-2.0`
+INC_LIB=`pkg-config --libs fuse3 glib-2.0`
 
-create_env: compile
+env: compile
 	mkdir -p $(MOUNT_PLACE)
-	./$(FS) -s -f $(MOUNT_PLACE)
+	./$(FS) -f $(MOUNT_PLACE)
 	
 compile: storage.o
-	gcc $(FLAGS) $(FS).c $(INC_GLIB) $(INC_FUSE) -o $(FS) storage.o
+	gcc $(FLAGS) -o $(FS) storage.o $(INC_CFL) $(FS).c $(INC_LIB)
 
 storage.o: storage.c
 	gcc -c storage.c $(INC_GLIB)
 
-clear_env:
+drop_env:
 	umount $(MOUNT_PLACE)
 
 clean:
 	rm -rf *.o
-	find . -type f -executable | xargs rm
+	find . -type f -executable | xargs rm -rf

@@ -29,18 +29,34 @@
 #include <sys/xattr.h>
 #endif
 
+
+//-----------------------------------------------------------------------------------------
 //Includes all external libs for the auth-fs
 
 #include <pwd.h>
 #include <grp.h>
 #include <sys/stat.h>
+#include <glib.h>
 
 //#include "include/passthrough_helpers.h"
 #include "include/storage.h"
 
+//-----------------------------------------------------------------------------------------
+
+// Storage DB file path
+#define STORAGE_PATH "../db/storage.db"
+
+// Database struct and stats
+DB storagedb = NULL;
+
+
+
+//-----------------------------------------------------------------------------------------
+
 static void *xmp_init(struct fuse_conn_info *conn,
 		      struct fuse_config *cfg)
 {
+    printf("[init] ...\n");
 	(void) conn;
 	cfg->use_ino = 1;
 
@@ -53,6 +69,7 @@ static void *xmp_init(struct fuse_conn_info *conn,
 
 static int xmp_readlink(const char *path, char *buf, size_t size)
 {
+    printf("[readlink] %s\n", path);
 	int res;
 
 	res = readlink(path, buf, size - 1);
@@ -68,7 +85,7 @@ static int xmp_getattr(const char *path, struct stat *stbuf,
 {
     
 
-    printf("[getattr] accessing atrb...%s\n", path);
+    printf("[getattr] %s\n", path);
     (void) fi;
 	int res;
 
@@ -83,7 +100,7 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 		       off_t offset, struct fuse_file_info *fi,
 		       enum fuse_readdir_flags flags)
 {
-    printf("[readir] accessing dir...%s\n", path);
+    printf("[readir] %s\n", path);
 	DIR *dp;
 	struct dirent *de;
 
@@ -110,7 +127,9 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 
 static int xmp_mkdir(const char *path, mode_t mode)
 {
-	int res;
+    printf("[mkdir] %s\n", path);
+	
+    int res;
 
 	res = mkdir(path, mode);
 	if (res == -1)
@@ -121,7 +140,9 @@ static int xmp_mkdir(const char *path, mode_t mode)
 
 static int xmp_rmdir(const char *path)
 {
-	int res;
+    printf("[rmdir] %s\n", path);
+	
+    int res;
 
 	res = rmdir(path);
 	if (res == -1)
@@ -133,7 +154,9 @@ static int xmp_rmdir(const char *path)
 static int xmp_chmod(const char *path, mode_t mode,
 		     struct fuse_file_info *fi)
 {
-	(void) fi;
+    printf("[create] %s\n", path);
+	
+    (void) fi;
 	int res;
 
 	res = chmod(path, mode);
@@ -146,7 +169,9 @@ static int xmp_chmod(const char *path, mode_t mode,
 static int xmp_chown(const char *path, uid_t uid, gid_t gid,
 		     struct fuse_file_info *fi)
 {
-	(void) fi;
+    printf("[chown] %s\n", path);
+	
+    (void) fi;
 	int res;
 
 	res = lchown(path, uid, gid);
@@ -159,6 +184,8 @@ static int xmp_chown(const char *path, uid_t uid, gid_t gid,
 static int xmp_create(const char *path, mode_t mode,
 		      struct fuse_file_info *fi)
 {
+    printf("[create] %s\n", path);
+
 	int res;
 
 	res = open(path, fi->flags, mode);
@@ -171,7 +198,7 @@ static int xmp_create(const char *path, mode_t mode,
 
 static int xmp_open(const char *path, struct fuse_file_info *fi)
 {
-    printf("[open] trying to open...%s\n", path);
+    printf("[open] %s\n", path);
     
     //1. Check context and file owner-------------------------------------------
 
@@ -214,7 +241,9 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
 static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
 		    struct fuse_file_info *fi)
 {
-	int fd;
+    printf("[read] %s\n", path);
+	
+    int fd;
 	int res;
 
 	if(fi == NULL)
@@ -237,7 +266,9 @@ static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
 static int xmp_write(const char *path, const char *buf, size_t size,
 		     off_t offset, struct fuse_file_info *fi)
 {
-	int fd;
+    printf("[write] %s\n", path);
+	
+    int fd;
 	int res;
 
 	(void) fi;
@@ -261,7 +292,7 @@ static int xmp_write(const char *path, const char *buf, size_t size,
 static int xmp_statfs(const char *path, struct statvfs *stbuf)
 {
     
-    printf("[statfs] trying to get stat %s\n", path);
+    printf("[statfs] %s\n", path);
 
     //uid_t = fuse_get_context() -> uid;
     //gid_t = fuse_get_context() -> gid;
@@ -276,7 +307,7 @@ static int xmp_statfs(const char *path, struct statvfs *stbuf)
 
 static int xmp_access(const char *path, int mask)
 {
-    printf("[access] trying to get access %s\n", path);
+    printf("[access] %s\n", path);
 	int res;
 
 	res = access(path, mask);
@@ -290,11 +321,10 @@ static int xmp_access(const char *path, int mask)
 static int xmp_utimens(const char *path, const struct timespec ts[2],
 		       struct fuse_file_info *fi)
 {
+    printf("[utimens] %s\n", path);
+
 	(void) fi;
 	int res;
-
-
-	//printf("utimens\n");
 
 	/* don't use utime/utimes since they follow symlinks */
 	res = utimensat(0, path, ts, AT_SYMLINK_NOFOLLOW);
@@ -308,7 +338,7 @@ static int xmp_utimens(const char *path, const struct timespec ts[2],
 static int xmp_release(const char *path, struct fuse_file_info *fi)
 {
 
-	//printf("release\n");
+    printf("[release] %s\n", path);
 
 	(void) path;
 	close(fi->fh);
@@ -318,12 +348,9 @@ static int xmp_release(const char *path, struct fuse_file_info *fi)
 static int xmp_fsync(const char *path, int isdatasync,
 		     struct fuse_file_info *fi)
 {
-
-
-	//printf("fsynch\n");
-
-
-	/* Just a stub.	 This method is optional and can safely be left
+    printf("[fsync] %s\n", path);
+	
+    /* Just a stub.	 This method is optional and can safely be left
 	   unimplemented */
 
 	(void) path;
@@ -336,7 +363,7 @@ static int xmp_fsync(const char *path, int isdatasync,
 static int xmp_getxattr(const char *path, const char *name, char *value,
 			size_t size)
 {
-    printf("[getxattr] trying to getxtraab %s\n", path);
+    printf("[getxattr] %s\n", path);
 	int res = lgetxattr(path, name, value, size);
 	if (res == -1)
 		return -errno;
@@ -345,7 +372,7 @@ static int xmp_getxattr(const char *path, const char *name, char *value,
 
 static int xmp_listxattr(const char *path, char *list, size_t size)
 {
-    printf("[listxatrrb] trying to get access %s\n", path);
+    printf("[listxattr] %s\n", path);
 	int res = llistxattr(path, list, size);
 	if (res == -1)
 		return -errno;
@@ -381,8 +408,15 @@ static const struct fuse_operations xmp_oper = {
 
 int main(int argc, char *argv[])
 {
-    do_smth();
-    umask(0);
-	return fuse_main(argc, argv, &xmp_oper, NULL);
+    //load contact storage database
+    storagedb = malloc(sizeof(DB));
+    load_contact_database(storagedb, STORAGE_PATH);
     
+    //display contents
+    print_contact_database(storagedb);
+        
+    //run filesystem
+    umask(0);
+
+	return fuse_main(argc, argv, &xmp_oper, NULL);    
 }
