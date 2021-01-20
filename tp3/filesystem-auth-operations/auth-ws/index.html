@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+
+<html>
+
+	<head>
+
+	    <title>Authorization FileSystem</title>
+
+	    <link rel="stylesheet" type="text/css" href="styles.css">
+	    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+	</head>
+
+	<body>
+
+		<div class="card">
+
+			<h1>Authorization FileSystem</h1>
+
+			<i class="material-icons" style="font-size: 80px;color: black">lock_open</i>
+
+			<div class="cardInput">
+
+			  	<div class="input">
+
+					Insert Code:
+				  	<input class="inputC" type="text" id="inputCode" maxlength="10" placeholder="Your code.."><br><br>
+
+		        </div>
+
+		    </div>
+
+		    <div class="multi-button">
+
+		        <button id="alertButton" class="acceptButton" onclick="acceptCode(true)">
+		        	<b>Authorize</b> &nbsp;&nbsp;
+		        	<i class="material-icons" style="font-size:30px; vertical-align: middle;">check</i>
+		        </button>
+
+		        <button id="alertButton" class="declineButton" onclick="acceptCode(false)">
+		        	<b>Deny Access</b> &nbsp;&nbsp;
+		        	<i class="material-icons" style="font-size:30px; vertical-align: middle;">close</i>
+		        </button>
+
+	      	</div>
+
+		</div>
+
+		<div id="myModal" class="modal">
+
+		  <div class="modal-content">
+		    <div id="modal-header" class="modal-header">
+		      
+		      <span class="close">&times;</span>
+		      
+		      <h2>
+		      	<span id="estadoPop">Success!</span>
+		      </h2>
+
+		    </div>
+
+		    <div class="modal-body">
+
+		    	<br>
+		   		<span id="textoPop">Your request was submitted...</span>
+		   		<br>
+		   		
+		    </div>
+
+		  </div>
+
+		</div>		
+
+	</body>
+
+	<script src="control.js"></script>
+
+</html>

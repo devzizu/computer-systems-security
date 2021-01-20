@@ -6,10 +6,8 @@
 
 #include "include/auth-api.h"
 
-//POST / ...{ code: ..., decision: ... }
-#define ROUTE_CONFIRM "http://localhost:3000/confirm"
 //GET / ...code?id=X
-#define ROUTE_GETCODE "http://localhost:3000/code"
+#define ROUTE_GETCODE "http://localhost:5000/auth-fs/api/codes"
 
 //https://curl.se/libcurl/c/simple.html
 

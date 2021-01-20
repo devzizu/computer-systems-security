@@ -30,7 +30,7 @@
 #endif
 
 
-//-----------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //Includes all external libs for the auth-fs
 
 #include <pwd.h>
@@ -40,11 +40,14 @@
 
 //#include "include/passthrough_helpers.h"
 #include "include/storage.h"
+#include "include/fs-tools.h"
 
-//-----------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 
 // Storage DB file path
 #define STORAGE_PATH "../db/storage.db"
+// Generated code standard size
+#define GENERATED_CODE_SIZE 10
 
 // Database struct and stats
 DB storagedb = NULL;
@@ -414,7 +417,9 @@ int main(int argc, char *argv[])
     
     //display contents
     print_contact_database(storagedb);
-        
+    
+    printf("code=%s\n", generate_random_code(GENERATED_CODE_SIZE));
+
     //run filesystem
     umask(0);
 

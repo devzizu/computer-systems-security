@@ -22,7 +22,7 @@ int main(int argc, char* argv) {
     int sec = 0; 
     int codeConfirmed = -1;
 
-    while (sec < 50){
+    while (sec < 3){
     
         printf("%d seconds passed...\n", sec+1);
         nanosleep(&t,NULL);

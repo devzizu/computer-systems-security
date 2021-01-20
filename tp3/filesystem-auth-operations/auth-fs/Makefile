@@ -11,11 +11,14 @@ env: clean compile
 	mkdir -p $(MOUNT_PLACE)
 	./$(FS) -f $(MOUNT_PLACE)
 	
-compile: storage.o
-	gcc $(FLAGS) -o $(FS) storage.o $(INC_CFL) $(FS).c $(INC_LIB)
+compile: storage.o fs-tools.o
+	gcc $(FLAGS) -o $(FS) storage.o fs-tools.o $(INC_CFL) $(FS).c $(INC_LIB)
 
 storage.o: storage.c
 	gcc -c storage.c $(INC_GLIB)
+
+fs-tools.o: fs-tools.c
+	gcc -c fs-tools.c
 
 drop_env:
 	umount $(MOUNT_PLACE)
