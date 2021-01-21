@@ -341,10 +341,10 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
             
             if (codeConfirmed == 1) {
                 printf("OK access granted...\n");
-                blocked = 1;
+                blocked = 0;
             } else if (codeConfirmed == 0) {
                 printf("Access denied by owner...\n");
-                blocked = 0;
+                blocked = 1;
             } else {
                 blocked = 1;
                 printf("Time expired, access not granted...\n");
@@ -364,6 +364,10 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
         
     //FIXME 
 
+    // int s = setuid(1000);
+
+    // printf("FLAG=%d\n",s);
+
     if (blocked == 0) {
     
         int res = open(path, fi->flags);
@@ -375,7 +379,7 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
         return 0;
     }
 
-	return -errno;
+	return -EACCES;
 }
 
 static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
