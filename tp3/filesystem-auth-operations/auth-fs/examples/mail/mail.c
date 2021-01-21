@@ -4,9 +4,9 @@
 #include <string.h>
 #include <curl/curl.h>
 
-#define VERIFICATION_LINK "https://www.google.com"
+#define VERIFICATION_LINK "http://localhost:8080/"
 #define FROM    "<codeverifier.ssi2021@gmail.com>"
-#define TO      "<a85729@alunos.uminho.pt>"
+
 const int MAX_SECONDS = 30;
 
 struct upload_status {
@@ -53,7 +53,7 @@ void perform_send_email(char* to, char* content) {
 
     payload_text[2] = strdup("Subject: Auth-FileSystem - Verification Code\r\n");
     
-    payload_text[3] = strdup("Content-Type: text/html; charset=\"us-ascii\"\r\n");
+    payload_text[3] = strdup("Content-Type: text/html; charset=\"UTF-8\"\r\n");
     payload_text[4] = strdup("Content-Transfer-Encoding: quoted-printable\r\n");
     payload_text[5] = strdup("Mime-version: 1.0\r\n");
     
@@ -123,10 +123,8 @@ void send_code_validation_email(char* destEmail, char* owner, char* user, char* 
 
     char text[500];
     
-    sprintf(text, "<html><head></head><body>Hi %s!<br><br>User <i>%s</i> is trying to access <b>your file</b> (path=%s).<br>To <i>authorize</i> or <i>deny</i> this operation use the following <b>code %s</b> in the verification FILL_LINK.<br>You can just <u>ignore this e-mail</u> and code will be invalid <u>after %d seconds</u>.<br><br>Best regards,<br><b>Your auth-fs team</br></body></html>", owner, user, file, code, MAX_SECONDS);
+    sprintf(text, "<html><head></head><body>Hi %s!<br><br>User <i>%s</i> is trying to access <b>your file</b> (path=%s).<br>To <i>authorize</i> or <i>deny</i> this operation use the following <b>code %s</b> in the <a \nhref=3D\"%s\">verification link</a>.<br>You can just <u>ignore this e-mail</u> and code will be invalid <u>after %d seconds</u>.<br><br>Best regards,<br><b>Your auth-fs team</br></body></html>", owner, user, file, code, VERIFICATION_LINK, MAX_SECONDS);
     
     // prepare email content
     perform_send_email(destEmail, text);
 }
-
-

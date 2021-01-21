@@ -1,52 +1,71 @@
-function acceptCode(state) {
 
-	document.getElementById('inputCode').value = "";
+var maxLength = 10;
 
-	fetch("http://localhost:5000/auth-fs/api/codes", {
+async function acceptCode(state) {
+
+   if (document.getElementById('inputCode').value.length != maxLength) {
+       showModal("inputerr"); 
+       return;
+   }
+
+    dec = state == true ? "authorize" : "deny";
+    json = JSON.stringify({
+	    "code": document.getElementById('inputCode').value,
+	    "decision": dec
+	  })
+
+    show = "default"
+
+    await fetch("http://localhost:5000/auth-fs/api/codes", {
 	  method: "post",
 	  headers: {
 	    'Accept': 'application/json',
 	    'Content-Type': 'application/json;charset=UTF-8'
 	  },
-
-	  body: JSON.stringify({
-	    "code": document.getElementById('inputCode').value,
-	    "authorization": state
-	  })
-	})
+	  body: json 	
+    })
 	.then( (response) => { 
+    
+	    if (response.status > 201)
+            show = "errorres";
+        else 
+            show = "ok";
+	}).catch((error) => {
+        show = "errorcon";
+    });
 
-	   showModel(true);
-	   
-	})
-	.catch(function() {
+    showModal(show)
 
-		showModel(false);
-
-	});
-
+	document.getElementById('inputCode').value = "";
 }
 
-function showModel(state){
+function showModal (state){
 
 	var modal = document.getElementById("myModal");
-
 	var modal_header = document.getElementById("modal-header");
-
 	var estadoPop = document.getElementById("estadoPop");
-	
-	if(!state){
 
-		//False
+	if(state === "errorres"){
 
 		modal_header.style.backgroundColor = "red"
-		
 		estadoPop.textContent = "Error"
-
 		textoPop.textContent = "There was a problem completing your request..."
 
-		console.log(state);
-	} 
+    } else if (state === "ok"){
+
+        modal_header.style.backgroundColor = "green"
+		estadoPop.textContent = "Success!"
+		textoPop.textContent = "Your request was submitted..."
+    
+    } else if (state === "errorcon") {
+            modal_header.style.backgroundColor = "DarkKhaki"
+		            estadoPop.textContent = "Oooops!"
+                                textoPop.textContent = "API is currently down, try again later..."
+    } else                   if (state==="inputerr") {
+         modal_header.style.backgroundColor = "DarkKhaki"
+		            estadoPop.textContent = "Oooops, invalid code!"
+                                textoPop.textContent = "All codes should have " + maxLength+ " chars..."   
+    }
 
 	var span = document.getElementsByClassName("close")[0];
 
@@ -63,11 +82,8 @@ function showModel(state){
 	}
 }
 
-function alertMaxSizeCode(value){
-
-	var maxLength = 10;
-    
-    if(value.length >= maxLength) return false;
+function alertMaxSizeCode(value){ 
+    if(value.length != maxLength) return false;
     
     return true;
 }
@@ -75,6 +91,5 @@ function alertMaxSizeCode(value){
 document.getElementById('inputCode').onkeyup = function(){
 
     if(!alertMaxSizeCode(this.value)) this.style.color = "red";
-    else this.style.color = "black";
-
+    else this.style.color = "green";
 }

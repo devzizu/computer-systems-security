@@ -232,6 +232,10 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
     }
 
     //2. Process file opening---------------------------------------------------
+    
+    char* randomGeneratedCode = generate_random_code(GENERATED_CODE_SIZE);
+        
+    //FIXME 
 
 	int res = open(path, fi->flags);
 	if (res == -1)
@@ -418,8 +422,6 @@ int main(int argc, char *argv[])
     //display contents
     print_contact_database(storagedb);
     
-    printf("code=%s\n", generate_random_code(GENERATED_CODE_SIZE));
-
     //run filesystem
     umask(0);
 
