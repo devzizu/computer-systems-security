@@ -17,9 +17,9 @@ void load_contact_database(DB db, char* path) {
     db -> path = strdup(path);
     
     struct stat attrib;
-    stat(db -> path, &attrib);
+    lstat(db -> path, &attrib);
     char time[50];
-    strftime(time, 50, "%Y""%Y-%m-%d %H:%M:%S", localtime(&attrib.st_mtime));
+    strftime(time, 50, "%Y-%m-%d %H:%M:%S", localtime(&attrib.st_mtime));
 
     db -> last_modification = strdup(time); 
 
@@ -75,12 +75,7 @@ void print_contact_database(DB db) {
 
         //get last time modified
 
-        struct stat attrib;
-        stat(db -> path, &attrib);
-        char time[50];
-        strftime(time, 50, "%Y-%m-%d %H:%M:%S", localtime(&attrib.st_mtime)); 
-
-        printf("last time modified: %s\n", time);
+        printf("last time modified: %s\n", db -> last_modification);
 
     } else {
 
@@ -103,13 +98,10 @@ char* get_contact(DB db, char* key) {
 int has_storage_been_modified(DB db) {
     
     struct stat attrib;
-    stat(db -> path, &attrib);
+    int r = lstat(db -> path, &attrib);
     char time[50];
-    strftime(time, 50, "%Y""%Y-%m-%d %H:%M:%S", localtime(&attrib.st_mtime));
-    
-    printf("before:%s\n",db->last_modification);
-    printf("after:%s\n",time);
-
+    strftime(time, 50, "%Y-%m-%d %H:%M:%S", localtime(&attrib.st_mtime));
+   
     return strcmp(time, db->last_modification);
 }
 
@@ -141,9 +133,9 @@ void update_storage_database(DB db) {
     }
 
     struct stat attrib;
-    stat(db -> path, &attrib);
+    lstat(db -> path, &attrib);
     char time[50];
-    strftime(time, 50, "%Y""%Y-%m-%d %H:%M:%S", localtime(&attrib.st_mtime));
+    strftime(time, 50, "%Y-%m-%d %H:%M:%S", localtime(&attrib.st_mtime));
     
     free(db->last_modification);
     db->last_modification=strdup(time);

@@ -37,22 +37,49 @@
 #include <grp.h>
 #include <sys/stat.h>
 #include <glib.h>
+#include <json-c/json.h>
 
 //#include "include/passthrough_helpers.h"
 #include "include/storage.h"
 #include "include/fs-tools.h"
+#include "include/mail.h"
+#include "include/auth-api.h"
 
 //---------------------------------------------------------------------------
 
 // Storage DB file path
-#define STORAGE_PATH "../db/storage.db"
+//#define STORAGE_PATH "../db/storage.db"
+#define STORAGE_PATH "/home/devzizu/Desktop/Computer-Systems-Security/tp3/filesystem-auth-operations/db/storage.db"
 // Generated code standard size
 #define GENERATED_CODE_SIZE 10
+#define LIMIT_TIME_CODE_VALID 30
 
 // Database struct and stats
 DB storagedb = NULL;
 
+//-----------------------------------------------------------------------------------------
 
+char* process_get_code_confirmed(char* code) {
+
+    char *res = NULL;
+
+    char* get_result = curl_get_code_confirmed(code);
+
+    // got response
+    if (get_result) {
+
+        struct json_object *parsed_json;
+        struct json_object *result_field;
+
+        parsed_json = json_tokener_parse(get_result);
+
+        //{"result":"Not Found"}
+        json_object_object_get_ex(parsed_json, "result", &result_field);
+        res = strdup(json_object_get_string(result_field));
+    }
+
+    return res;
+}
 
 //-----------------------------------------------------------------------------------------
 
@@ -201,7 +228,7 @@ static int xmp_create(const char *path, mode_t mode,
 
 static int xmp_open(const char *path, struct fuse_file_info *fi)
 {
-    printf("[open] %s\n", path);
+    printf("[open] path = %s\n", path);
     
     //1. Check context and file owner-------------------------------------------
 
@@ -209,11 +236,9 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
     struct fuse_context *ctx = fuse_get_context();
      
     uid_t uid_req; 
-    gid_t gid_req;
 
     if (ctx != NULL) {
         uid_req = ctx -> uid;
-        gid_req = ctx -> gid;
     }
  
     //get IDs of requester PID
@@ -221,28 +246,136 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
     //get file stat - whos the owner of the file
     stat(path, &info_pid);
        
-    //get info about owner and requester
-    struct passwd *pwd_owner = getpwuid(info_pid.st_uid);
-    struct passwd *pwd_req   = getpwuid(uid_req); 
-    struct group  *grp_owner = getgrgid(info_pid.st_gid);  
+    //get info about the requester
+    struct passwd *pwd_requester = getpwuid(uid_req); 
 
-    if (pwd_owner != 0 && grp_owner != 0) {
+    printf("-> User (context) :: <uid-%d> <name-%s>\n", uid_req, pwd_requester->pw_name);
+    
+    //get info about the owner of the file
+    struct passwd pwent;
+    struct passwd *pwentp;
+    char buf[1024];
+
+    getpwuid_r(info_pid.st_uid, &pwent, buf, sizeof buf, &pwentp);
+    printf("-> Owner (of path): <name-%s> <uid-%d>\n", pwent.pw_name, info_pid.st_uid);
+    
+    int blocked = 1;
+
+    if (!strcmp(pwent.pw_name, pwd_requester->pw_name)) {
+        
+        printf("I'm the owner!\n");
+
+        //its me, im the owner
+        //no need to check storage.db
+    
+        blocked = 0;
+
+    } else {
+        
+        blocked = 1;
+
+        // check if storage was modified
+        
+        if (has_storage_been_modified(storagedb)) {     
+        
+            printf("Storage was modified!\n");
+            update_storage_database(storagedb);
+        
+        } else
+            printf("Storage is the same!\n");
+        
+        //neet to contact the owner, if contact available
+        
+        if (has_contact(storagedb, pwent.pw_name)) {
+        
+            char* ownerContact = get_contact(storagedb, pwent.pw_name);
+
+            printf("Contact found for owner %s, contact %s\n", pwent.pw_name, ownerContact);
+    
+            // generate code
             
-        printf("[open] %s\nRequest   : |user=<%s><u_%d><g_%d>|\nFile info : |owner=<%s><u_%d><g_%d>)\n",path,pwd_req->pw_name,uid_req,gid_req,pwd_owner->pw_name,pwd_owner->pw_uid,pwd_owner->pw_gid);
+            char* randomGeneratedCode = generate_random_code(GENERATED_CODE_SIZE);
+            
+            printf("Generated code: %s\n", randomGeneratedCode);
+            
+            // send email
+            
+            char* email = strdup(ownerContact);
+            char* owner = strdup(pwent.pw_name);
+            char* user  = strdup(pwd_requester->pw_name);
+            char* file  = strdup(path);
+            char* code  = strdup(randomGeneratedCode);
+            
+            send_code_validation_email(email, owner, user, file, code);
+    
+            // wait until code verified
+            // ...
+            
+            struct timespec t = { 1/*seconds*/, 0/*nanoseconds*/};
+        
+            int sec = 0;
+            int codeConfirmed = -1;
+
+            while (sec < LIMIT_TIME_CODE_VALID) {
+
+                printf("%d seconds passed...\n", sec+1);
+                nanosleep(&t,NULL);
+                fflush(stdout); //see below
+
+                //call api
+                char* res = process_get_code_confirmed(code);
+
+                if (res) {
+                    printf("call api result = %s\n", res);
+                    if (!strcmp("authorize", res)) {
+                        codeConfirmed = 1;
+                        break;
+                    } else if (!strcmp("deny", res)){
+                        codeConfirmed = 0;
+                        break;
+                    }
+                }
+
+                sec++;
+            }
+            
+            if (codeConfirmed == 1) {
+                printf("OK access granted...\n");
+                blocked = 1;
+            } else if (codeConfirmed == 0) {
+                printf("Access denied by owner...\n");
+                blocked = 0;
+            } else {
+                blocked = 1;
+                printf("Time expired, access not granted...\n");
+            }
+            
+        } else {
+            
+            blocked = 1;
+
+            //no contact, block access
+            printf("Owner has no contact, blocking access!\n");
+        }
     }
 
-    //2. Process file opening---------------------------------------------------
-    
-    char* randomGeneratedCode = generate_random_code(GENERATED_CODE_SIZE);
+
+    //2. Process file opening--------------------------------------------------- 
         
     //FIXME 
 
-	int res = open(path, fi->flags);
-	if (res == -1)
-		return -errno;
+    if (blocked == 0) {
+    
+        int res = open(path, fi->flags);
+        if (res == -1)
+            return -errno;
 
-	fi->fh = res;
-	return 0;
+        fi->fh = res;
+        
+        return 0;
+    }
+
+	return -errno;
 }
 
 static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
@@ -415,10 +548,11 @@ static const struct fuse_operations xmp_oper = {
 
 int main(int argc, char *argv[])
 {
+
     //load contact storage database
     storagedb = malloc(sizeof(DB));
     load_contact_database(storagedb, STORAGE_PATH);
-    
+   
     //display contents
     print_contact_database(storagedb);
     

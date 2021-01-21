@@ -6,7 +6,7 @@
 
 #include "include/fs-tools.h"
 
-static const char set[] = "abcdefghijklmnopqrstuvwxyz123456789";
+static const char set[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz123456789";
 static size_t set_count = sizeof(set) - 1;
 
 char* generate_random_code(int size) {
