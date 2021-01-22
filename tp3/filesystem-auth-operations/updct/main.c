@@ -73,8 +73,6 @@ int update_storage(char* user, char* contact) {
 
     int fd = open(STORAGE, O_WRONLY | O_APPEND);
    
-    printf("FD=%d\n",fd);
-
     write(fd, buffer, strlen(buffer));
 
     close(fd);
