@@ -10,7 +10,7 @@
 #include <grp.h>
 #include <sys/stat.h>
 
-#define STORAGE "storage.db"
+#define STORAGE "/home/devzizu/Desktop/Computer-Systems-Security/tp3/filesystem-auth-operations/db/storage.db"
 #define STORAGE_ROOT_USER "storage-root"
 
 //-------------------------------------------------------------------------
@@ -72,7 +72,9 @@ int update_storage(char* user, char* contact) {
     sprintf(buffer, "%s::%s\n", user, contact);
 
     int fd = open(STORAGE, O_WRONLY | O_APPEND);
-    
+   
+    printf("FD=%d\n",fd);
+
     write(fd, buffer, strlen(buffer));
 
     close(fd);
