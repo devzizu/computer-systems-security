@@ -44,21 +44,9 @@
 #include "include/fs-tools.h"
 #include "include/mail.h"
 #include "include/auth-api.h"
+#include "include/global.h"
 
 //---------------------------------------------------------------------------
-
-//Storage DB root user
-#define STORAGE_ROOT_USER "storage-root"
-
-// Storage DB file path
-//#define STORAGE_PATH "../db/storage.db"
-#define STORAGE_PATH "/home/devzizu/Desktop/Computer-Systems-Security/tp3/filesystem-auth-operations/db/storage.db"
-
-// Generated code standard size
-#define GENERATED_CODE_SIZE 10
-
-// Time of which code is valid
-#define LIMIT_TIME_CODE_VALID 30
 
 // Database struct and stats
 DB storagedb = NULL;

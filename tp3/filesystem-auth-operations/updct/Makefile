@@ -1,8 +1,9 @@
 
+PROG=updct
 
 main: clean
-	gcc main.c -o main
-	chmod u+s main
+	gcc main.c -o $(PROG)
+	chmod u+s $(PROG)
 
 clean:
-	rm -rf *.out *.o main
+	rm -rf *.out *.o $(PROG)
