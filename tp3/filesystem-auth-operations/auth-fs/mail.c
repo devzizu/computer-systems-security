@@ -84,8 +84,8 @@ void perform_send_email(char* wdir, char* to, char* content) {
  
         // TLS/SSL
         curl_easy_setopt(curl, CURLOPT_USE_SSL, (long)CURLUSESSL_ALL);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+        //curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+        //curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     
         char* certpath = get_certificate_path(wdir);
         curl_easy_setopt(curl, CURLOPT_CAINFO, certpath);
@@ -102,7 +102,7 @@ void perform_send_email(char* wdir, char* to, char* content) {
         curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
  
         // see verbose traffic output
-        //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     
         // send message
         res = curl_easy_perform(curl);
