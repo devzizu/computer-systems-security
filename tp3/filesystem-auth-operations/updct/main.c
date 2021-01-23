@@ -70,7 +70,7 @@ int update_storage(char* user, char* contact) {
 
     sprintf(buffer, "%s::%s\n", user, contact);
 
-    int fd = open(STORAGE_PATH, O_WRONLY | O_APPEND);
+    int fd = open(STORAGE_PATH_UPDCT, O_WRONLY | O_APPEND);
    
     write(fd, buffer, strlen(buffer));
 

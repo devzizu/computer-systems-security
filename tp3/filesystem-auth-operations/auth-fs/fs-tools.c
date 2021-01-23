@@ -26,3 +26,27 @@ char* generate_random_code(int size) {
 
     return strdup(output);
 }
+
+char* get_storage_path(char* wdir) {
+
+    int i;
+    for (i = strlen(wdir) - 1; wdir[i] != '/'; i--);
+    wdir[i] = '\0';
+
+    char final_path[250];
+
+    sprintf(final_path, "%s/db/storage.db", wdir);
+
+    return strdup(final_path);
+}
+
+char* get_certificate_path(char* wdir) {
+
+    char final_path[250];
+
+    sprintf(final_path, "%s/mail-cert/certificate.pem", wdir);
+
+    printf("cert=%s\n",final_path);
+
+    return strdup(final_path);
+}

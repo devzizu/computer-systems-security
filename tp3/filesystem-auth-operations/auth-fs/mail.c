@@ -4,6 +4,9 @@
 #include <string.h>
 #include <curl/curl.h>
 
+#include "include/global.h"
+#include "include/fs-tools.h"
+
 #define VERIFICATION_LINK "http://localhost:8080/"
 #define FROM    "<codeverifier.ssi2021@gmail.com>"
 
@@ -37,7 +40,7 @@ static size_t payload_source(char *ptr, size_t size, size_t nmemb, void *userp)
   return 0;
 }
 
-void perform_send_email(char* to, char* content) {
+void perform_send_email(char* wdir, char* to, char* content) {
 
     //-----------------------------------------------------
 
@@ -83,7 +86,9 @@ void perform_send_email(char* to, char* content) {
         curl_easy_setopt(curl, CURLOPT_USE_SSL, (long)CURLUSESSL_ALL);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-        //curl_easy_setopt(curl, CURLOPT_CAINFO, "/path/to/certificate.pem");
+    
+        char* certpath = get_certificate_path(wdir);
+        curl_easy_setopt(curl, CURLOPT_CAINFO, certpath);
         
         curl_easy_setopt(curl, CURLOPT_MAIL_FROM, FROM);
         recipients = curl_slist_append(recipients, to);
@@ -117,7 +122,7 @@ void perform_send_email(char* to, char* content) {
     //return (int) res;
 }
 
-void send_code_validation_email(char* destEmail, char* owner, char* user, char* file, char* code) {
+void send_code_validation_email(char* wdir, char* destEmail, char* owner, char* user, char* file, char* code) {
 
     // prepare payload text
 
@@ -126,5 +131,5 @@ void send_code_validation_email(char* destEmail, char* owner, char* user, char* 
     sprintf(text, "<html><head></head><body>Hi %s!<br><br>User <i>%s</i> is trying to access <b>your file</b> (%s).<br>To <i>authorize</i> or <i>deny</i> this operation use the following <b>code %s</b> in the <a \nhref=3D\"%s\">verification link</a>.<br>You can just <u>ignore this e-mail</u> and code will be invalid <u>after %d seconds</u>.<br><br>Best regards,<br><b>Your auth-fs team</br></body></html>", owner, user, file, code, VERIFICATION_LINK, MAX_SECONDS);
     
     // prepare email content
-    perform_send_email(destEmail, text);
+    perform_send_email(wdir, destEmail, text);
 }

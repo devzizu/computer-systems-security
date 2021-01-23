@@ -83,7 +83,7 @@ void perform_send_email(char* to, char* content) {
         curl_easy_setopt(curl, CURLOPT_USE_SSL, (long)CURLUSESSL_ALL);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-        //curl_easy_setopt(curl, CURLOPT_CAINFO, "/path/to/certificate.pem");
+        curl_easy_setopt(curl, CURLOPT_CAINFO, "certificate.pem");
         
         curl_easy_setopt(curl, CURLOPT_MAIL_FROM, FROM);
         recipients = curl_slist_append(recipients, to);

@@ -51,6 +51,9 @@
 // Database struct and stats
 DB storagedb = NULL;
 
+char* MAIL_CERTIFICATE_PATH = NULL;
+char* wdir = NULL;
+
 //-----------------------------------------------------------------------------------------
 
 char* process_get_code_confirmed(char* code) {
@@ -300,7 +303,7 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
             char* file  = strdup(path);
             char* code  = strdup(randomGeneratedCode);
             
-            send_code_validation_email(email, owner, user, file, code);
+            send_code_validation_email(wdir, email, owner, user, file, code);
     
             // wait until code verified
             // ...
@@ -547,9 +550,13 @@ static const struct fuse_operations xmp_oper = {
 int main(int argc, char *argv[])
 {
 
+    char wd[200];
+    getcwd(wd, FILENAME_MAX);
+    wdir = strdup(wd);
+
     //load contact storage database
     storagedb = malloc(sizeof(DB));
-    load_contact_database(storagedb, STORAGE_PATH);
+    load_contact_database(storagedb, get_storage_path(wdir));
    
     //display contents
     print_contact_database(storagedb);
