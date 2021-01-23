@@ -3,10 +3,17 @@ var maxLength = 10;
 
 async function acceptCode(state) {
 
-   if (document.getElementById('inputCode').value.length != maxLength) {
-       showModal("inputerr"); 
-       return;
-   }
+    inputCodeString = document.getElementById('inputCode').value;
+
+    if (inputCodeString.length != maxLength) {
+        showModal("inputerr"); 
+        return;
+    } 
+    
+    if ((/^([a-zA-Z0-9]{10})$/.test(inputCodeString)) == false) {
+        showModal("invalidinputerr"); 
+        return;    
+    }
 
     dec = state == true ? "authorize" : "deny";
     json = JSON.stringify({
@@ -65,6 +72,10 @@ function showModal (state){
          modal_header.style.backgroundColor = "DarkKhaki"
 		            estadoPop.textContent = "Oooops, invalid code!"
                                 textoPop.textContent = "All codes should have " + maxLength+ " chars..."   
+    } else if (state === "invalidinputerr") {
+          modal_header.style.backgroundColor = "DarkKhaki"
+		  estadoPop.textContent = "Oooops, invalid code!"
+          textoPop.textContent = "Valid codes have chars and numbers only..."   
     }
 
 	var span = document.getElementsByClassName("close")[0];

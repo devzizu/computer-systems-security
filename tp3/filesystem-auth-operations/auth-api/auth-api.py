@@ -1,5 +1,6 @@
 #!flask/bin/python
 
+import re
 import sys
 import time
 import threading
@@ -74,7 +75,12 @@ def validate_code():
     codeD = request.json.get('decision')
 
     codeNStr = str(codeN)
-    
+
+    matched = bool(re.match("[a-zA-Z0-9]{10}", codeNStr)) 
+    print(matched and len(codeNStr) != 10)
+    if ((len(codeNStr) != 10) or not matched):
+        return jsonify({ "result": { "code": codeN, "status": "bad code syntax" } }), 400
+        
     if (codeNStr in PENDING_CODES):
         return jsonify({ "result": { "code": codeN, "status": "already registred" } }), 400
     
